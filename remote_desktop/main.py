@@ -1,6 +1,7 @@
 import pickle
 import socket
 import sys
+import time
 from server import RemoteDesktopServer
 
 
@@ -10,47 +11,26 @@ class MainServerClient:
     self.server_port = port
     self.sock = socket.socket()
 
-
-  def run(self):
     self.sock.connect((self.server_ip, self.server_port))
 
-    # Register desktop with main server.
+  def register(self):
     message = pickle.dumps(["register_request"])
     self.sock.send(message)
 
-    # Once registered, server sends a desktop_id
-    # and password.
+    # Once registered, server sends a desktop_id.
     self.desktop_id = self.sock.recv(1024).decode()
-    self.password = self.sock.recv(1024).decode()
-    print(self.desktop_id)
 
-    # Create a server to accept incoming connections for remote desktop
-    # access
-    self.server = RemoteDesktopServer(self.desktop_id)
+    return self.desktop_id
 
-    # Send ready status to main server.
-    message = pickle.dumps(["status", "ready", self.server.port])
+
+  def send_ready(self, port_no):
+    message = pickle.dumps(["status", "ready", port_no])
     self.sock.send(message)
+   
 
-    # Exit
+  def close(self):
     message = pickle.dumps(["status", "exit"])
     self.sock.send(message)
-
-   # while True:
-   #    password = input("Enter password\n")
-
-   #    self.sock.send(password.encode())
-   #    reply = self.sock.recv(1024).decode()
-
-   #    if reply == "valid":
-   #      print("verified")
-
-   #      # Nothing to do, exit.
-   #      message = "exit"
-   #      self.sock.send(message.encode())
-   #      break
-   #    else:
-   #      print("invalid")
 
     self.sock.close()
 
@@ -58,6 +38,19 @@ class MainServerClient:
 
 host = ''
 port = int(sys.argv[1])
-client = MainServerClient (host, port)
+main_server_client = MainServerClient (host, port)
 
-client.run()
+# Register the desktop in main server.
+desktop_id = main_server_client.register()
+
+# Create a server to accept incoming connections for remote desktop
+# access.
+server = RemoteDesktopServer(desktop_id)
+server.start()
+
+# Send reaady signal to main server.
+main_server_client.send_ready(server.port)
+
+# TODO remove this part.
+time.sleep(20)
+main_server_client.close()

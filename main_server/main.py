@@ -11,10 +11,6 @@ class Server:
     self.port = port;
     self.create_socket();
     self.next_desktop_id = 123456
-    # Dict to store socket connection to desktop_id mappings.
-    self.desktop_ids= {}
-    # Dict to store desktop_id to password mappings.
-    self.passwords = {}
     # Dict to store whether a remote desktop is ready to receive
     # connections. 
     self.is_ready = {}
@@ -33,6 +29,7 @@ class Server:
     while True:
       conn, address = self.soc.accept()
 
+      print("Obtained connection from: ", address[0] + ":" + str(address[1]))
       # Start a new thread to provide service to this client.
       ClientServiceThread(self, conn, address).start()
 

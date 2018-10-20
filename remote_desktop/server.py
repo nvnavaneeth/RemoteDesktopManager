@@ -1,4 +1,5 @@
 import socket
+import threading
 import uuid
 
 #---- Some utility methods--------------------------------------------
@@ -11,7 +12,8 @@ def generate_password(length):
 
 #---------------------------------------------------------------------
 
-class RemoteDesktopServer:
+class RemoteDesktopServer(threading.Thread):
+
   def __init__(self, desktop_id):
     self.desktop_id = desktop_id
     self.password = generate_password(8)
@@ -21,19 +23,12 @@ class RemoteDesktopServer:
     self.sock.bind(("",0))
     self.ip, self.port = self.sock.getsockname()
 
-    print("Remote desktop server created")
-    
-    # Run the server.
-    self.run()
+    threading.Thread.__init__(self)
 
+    print("Remote desktop server created")
 
   def __del__(self):
     print("Remote desktop server shutting down")
-
-
-  def get_address(self):
-    return self.ip, self.port
-
 
   def run(self):
     print("Run method called")

@@ -6,8 +6,6 @@ class MainServerClient:
   def __init__(self, address):
     self.soc = socket.socket()
     self.soc.connect((address[0], address[1])) 
-    print("connected to main server")
-
 
   def get_desktop_address(self, desktop_id):
     message = pickle.dumps(["connect_request", desktop_id])
