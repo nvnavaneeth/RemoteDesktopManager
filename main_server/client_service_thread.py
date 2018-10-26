@@ -33,9 +33,8 @@ class ClientServiceThread(threading.Thread):
         elif (message_type == "connect_request"):
           self.process_connect_request(message)
 
-    except ex:
+    except Exception as ex:
       print(ex)
-      pass
     
     finally:
       # Close the connection.
@@ -61,6 +60,7 @@ class ClientServiceThread(threading.Thread):
 
     self.desktop_registered = True
     self.desktop_id = desktop_id
+    print("Registerd desktop Id: ", desktop_id)
 
     # Send credentials to client.
     self.conn.send(desktop_id.encode())
@@ -88,6 +88,6 @@ class ClientServiceThread(threading.Thread):
     # generate desktop_id.
     desktop_id = str(self.parent.next_desktop_id)
     # TODO: Make this operation thread safe.
-    self.next_desktop_id = self.parent.next_desktop_id + 1
+    self.parent.next_desktop_id = self.parent.next_desktop_id + 1
 
     return desktop_id

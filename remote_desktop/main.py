@@ -50,7 +50,3 @@ server.start()
 
 # Send reaady signal to main server.
 main_server_client.send_ready(server.port)
-
-# TODO remove this part.
-time.sleep(20)
-main_server_client.close()

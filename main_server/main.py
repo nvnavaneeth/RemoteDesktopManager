@@ -10,7 +10,7 @@ class Server:
     self.host = host;
     self.port = port;
     self.create_socket();
-    self.next_desktop_id = 123456
+    self.next_desktop_id = 123
     # Dict to store whether a remote desktop is ready to receive
     # connections. 
     self.is_ready = {}
