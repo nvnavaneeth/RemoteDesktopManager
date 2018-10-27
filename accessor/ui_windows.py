@@ -1,112 +1,163 @@
-import gi
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk as gtk
+import sys
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 
+class MainWindow(QWidget):
 
-class PopupWindow(gtk.Window):
-  def __init__(self, title, message):
-    gtk.Window.__init__(self, title = title)
- 
-    self.set_border_width(10)
-    grid = gtk.Grid(row_spacing = 15)
-
-    label_message = gtk.Label(message)
-    button_ok = gtk.Button(label = "Ok")
-    button_ok.connect("clicked", self.close)
-
-    grid.attach(label_message, 0, 0, 3, 1)
-    grid.attach(button_ok, 1, 1, 1, 1)
-    self.add(grid)
-
-
-  def close(self, widget):
-    self.destroy() 
-
-
-# Dummy authentication functions to use when this is main.
-class DummyAuth:
-  def verify_desktop_id(self, desktop_id):
-    if desktop_id == "123":
-      return True
-    
-    return False
-
-  def verify_password(self, password):
-    if password == "qwe":
-      return True
-
-    return False
-  
-
-class LoginWindow(gtk.Window):
   def __init__(self):
-    self.verify_desktop_id_cb= None
-    self.verify_password_cb= None
+    super(MainWindow, self).__init__()
+    self.setFocusPolicy(Qt.StrongFocus)
+    self.setMouseTracking(True)
 
-    gtk.Window.__init__(self, title = "Remote Desktop Manager")
-    self.set_border_width(10)
+    self.resize(300,300)
+    self.show()
 
-    self.stack = gtk.Stack()
-    self.stack.set_transition_type(\
-        gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-    self.add(self.stack)
+  def keyPressEvent(self, event):
+    event_desc = {"type": "KeyPress", "key": event.key()}
+    print("Key pressed: ", event.key())
+    self.event_cb(event_desc)
 
-    # Page to get desktop Id.
-    grid1 = gtk.Grid(row_spacing = 6, column_spacing = 10)
+  def keyReleaseEvent(self, event):
+    event_desc = {"type": "KeyRelease", "key": event.key()}
+    print("Key release: ", event.key())
+    self.event_cb(event_desc)
 
-    label_desktop_id = gtk.Label("Desktop Id")
-    self.entry_desktop_id = gtk.Entry()
-    button_next = gtk.Button(label = "Next")
-    button_next.connect("clicked", self.verify_desktop_id)
+  def mousePressEvent(self, event):
+    event_desc = {"type": "MousePress",
+                  "button": event.button(),
+                  "x": event.pos().x(),
+                  "y": event.pos().y()}
+    print("Mouse pressed")
+    self.event_cb(event_desc)
 
-    grid1.add(label_desktop_id)
-    grid1.attach(self.entry_desktop_id, 1, 0, 2, 1)
-    grid1.attach(button_next, 1, 1, 1, 1)
+  def mouseReleaseEvent(self, event):
+    event_desc = {"type": "MouseRelease",
+                  "button": event.button(),
+                  "x": event.pos().x(),
+                  "y": event.pos().y()}
+    print("Mouse release")
+    self.event_cb(event_desc)
 
-    self.stack.add_named(grid1, "desktop_id_page")
-
-    # Page to get password. 
-    grid2 = gtk.Grid(row_spacing = 6, column_spacing = 10)
-
-    label_password = gtk.Label("Password")
-    self.entry_password = gtk.Entry(visibility = False)    
-    button_login = gtk.Button(label = "Login")
-    button_login.connect("clicked", self.verify_password)
-
-    grid2.add(label_password)
-    grid2.attach(self.entry_password, 1, 0, 2, 1)
-    grid2.attach(button_login, 1, 1, 1, 1)
-
-    self.stack.add_named(grid2, "password_page")
-
-
-  def verify_desktop_id(self, widget):
-    desktop_id = self.entry_desktop_id.get_text()
-    authenticated = self.verify_desktop_id_cb(desktop_id)
-    if authenticated:
-      # Show password page.
-      self.stack.set_visible_child_full(\
-          "password_page", gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-    else:
-      PopupWindow("RDM", "Invalid desktop Id").show_all()
+  def mouseMoveEvent(self, event):
+    event_desc = {"type": "MouseMove",
+                  "button": event.button(),
+                  "x": event.pos().x(),
+                  "y": event.pos().y()}
+    self.event_cb(event_desc)
 
 
-  def verify_password(self, widget):
-    password = self.entry_password.get_text()
-    authenticated = self.verify_password_cb(password)
-    if authenticated:
-      print("Successfully logged in")
-      # TODO: open the main window.
-      self.destroy()
-    else:
-      PopupWindow("RDM", "Error in authenticating").show_all()
+class PopupWindow(QDialog):
+  
+  def __init__(self, title, message):
+    super(QWidget, self).__init__()
+    self.setWindowTitle(title)
+
+    label_msg = QLabel(message)
+    btn_ok = QPushButton("Ok")
+    btn_ok.clicked.connect(self.close)
+    
+    layout = QVBoxLayout(self)
+    layout.addWidget(label_msg)
+    layout.addWidget(btn_ok)
+
+    self.resize(self.sizeHint())
+    self.exec_()
+
+
+class LoginWindow(QMainWindow):
+
+  def __init__(self):
+    super(LoginWindow, self).__init__()
+    self.setWindowTitle("RemoteDesktopManager")
+    self.setGeometry(200, 200, 300, 100)
+    
+    self.stack = QStackedWidget(self)
+    self.create_desktop_id_page()
+    self.stack.addWidget(self.desktop_id_page)
+    self.stack.resize(self.stack.sizeHint())
+
+    self.show()
+
+  def create_desktop_id_page(self):
+    self.desktop_id_page = QWidget()
+    
+    grid = QGridLayout(self.desktop_id_page)
+    grid.setHorizontalSpacing(15)
+
+    label_desktop_id = QLabel("Desktop Id")
+    self.entry_desktop_id = QLineEdit()
+    self.entry_desktop_id.returnPressed.connect(self.on_click_next)
+    btn_next = QPushButton("Next")
+    btn_next.clicked.connect(self.on_click_next)
+
+    grid.addWidget(label_desktop_id, 1, 1)
+    grid.addWidget(self.entry_desktop_id, 1, 2, 1, 2)
+    grid.addWidget(btn_next, 2, 2, 1, 1)
+
+    self.desktop_id_page.resize(self.desktop_id_page.sizeHint())
+
+
+  def create_password_page(self):
+    self.password_page = QWidget()
+
+    grid = QGridLayout(self.password_page)
+    grid.setHorizontalSpacing(15)
+
+    label_desktop_id = QLabel("Desktop Id")
+    label_desktop_id_val = QLabel(str(self.desktop_id))
+    label_password = QLabel("Password")
+    self.entry_passowrd = QLineEdit()
+    self.entry_passowrd.setEchoMode(QLineEdit.Password)
+    self.entry_passowrd.returnPressed.connect(self.on_click_login)
+    btn_login= QPushButton("Login")
+    btn_login.clicked.connect(self.on_click_login)
+
+    grid.addWidget(label_desktop_id, 1, 1)
+    grid.addWidget(label_desktop_id_val, 1, 2, 1, 2)
+    grid.addWidget(label_password, 2, 1)
+    grid.addWidget(self.entry_passowrd, 2, 2, 1, 2)
+    grid.addWidget(btn_login, 3, 2, 1, 1)
+
+    self.desktop_id_page.resize(self.desktop_id_page.sizeHint())
+
+
+  def on_click_next(self):
+    self.desktop_id = self.entry_desktop_id.text()
+
+    valid = self.verify_desktop_id_cb(self.desktop_id)
+    if not valid:
+      PopupWindow("Error", "Invlaid Desktop Id")
+      return
+
+    self.create_password_page()
+    self.stack.addWidget(self.password_page)
+    self.stack.resize(self.stack.sizeHint())
+    self.stack.setCurrentIndex(1)
+
+
+  def on_click_login(self):
+    self.password = self.entry_passowrd.text()
+
+    valid = self.verify_password_cb(self.password)
+    if not valid:
+      PopupWindow("Error", "Incorrect Password")
+      return
+
+    self.close()
+
+
+def dummy_auth(word):
+  if word == "123":
+    return True
+  return False
 
 
 if __name__ == "__main__":
-  win = LoginWindow()
-  dummy_auth = DummyAuth()
-  win.verify_desktop_id_cb = dummy_auth.verify_desktop_id
-  win.verify_password_cb = dummy_auth.verify_password
-  win.connect("destroy", gtk.main_quit)
-  win.show_all()
-  gtk.main()
+  app = QApplication(sys.argv)
+  window = LoginWindow()
+  window.verify_desktop_id_cb = dummy_auth
+  window.verify_password_cb = dummy_auth
+
+  main_window = MainWindow()
+  
+  sys.exit(app.exec_())

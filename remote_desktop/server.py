@@ -79,7 +79,21 @@ class RemoteDesktopServer(threading.Thread):
           conn.send(pickle.dumps(message))
 
   def main_process(self, conn):
-    print("Main process")
+    while(True):
+      message = pickle.loads(conn.recv(1024))
+      if message[0] == "event":
+        self.process_event(message[1])
+      elif message[0] == "status":
+        self.process_status(message[1])
+
+
+  def process_event(self, event):
+    print("Event received: ", event["type"])
+
+
+  def process_status(self, status):
+    print("Status received")
+
 
   def close(self):
     print("Server shutting down")

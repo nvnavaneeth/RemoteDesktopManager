@@ -25,7 +25,11 @@ class RemoteDesktopClient:
     elif reply[0] == "authenticated":
       return True
 
+  def send_event(self, event):
+    message = ["event", event]
+    self.soc.send(pickle.dumps(message))
      
+
   def close(self):
     print("Terminating connection")
     message = pickle.dumps(["status", "exit"])
