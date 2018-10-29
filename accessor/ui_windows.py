@@ -14,12 +14,12 @@ class MainWindow(QWidget):
 
   def keyPressEvent(self, event):
     event_desc = {"type": "KeyPress", "key": event.key()}
-    print("Key pressed: ", event.key())
+    #print("Key pressed: ", event.key())
     self.event_cb(event_desc)
 
   def keyReleaseEvent(self, event):
     event_desc = {"type": "KeyRelease", "key": event.key()}
-    print("Key release: ", event.key())
+    #print("Key release: ", event.key())
     self.event_cb(event_desc)
 
   def mousePressEvent(self, event):
@@ -27,7 +27,7 @@ class MainWindow(QWidget):
                   "button": event.button(),
                   "x": event.pos().x(),
                   "y": event.pos().y()}
-    print("Mouse pressed")
+    #print("Mouse pressed")
     self.event_cb(event_desc)
 
   def mouseReleaseEvent(self, event):
@@ -35,7 +35,7 @@ class MainWindow(QWidget):
                   "button": event.button(),
                   "x": event.pos().x(),
                   "y": event.pos().y()}
-    print("Mouse release")
+    #print("Mouse release")
     self.event_cb(event_desc)
 
   def mouseMoveEvent(self, event):
@@ -44,6 +44,9 @@ class MainWindow(QWidget):
                   "x": event.pos().x(),
                   "y": event.pos().y()}
     self.event_cb(event_desc)
+
+  def update_display(pix_map):
+    pass 
 
 
 class PopupWindow(QDialog):
@@ -80,9 +83,6 @@ class LoginWindow(QMainWindow):
 
   def create_desktop_id_page(self):
     self.desktop_id_page = QWidget()
-    
-    grid = QGridLayout(self.desktop_id_page)
-    grid.setHorizontalSpacing(15)
 
     label_desktop_id = QLabel("Desktop Id")
     self.entry_desktop_id = QLineEdit()
@@ -90,6 +90,8 @@ class LoginWindow(QMainWindow):
     btn_next = QPushButton("Next")
     btn_next.clicked.connect(self.on_click_next)
 
+    grid = QGridLayout(self.desktop_id_page)
+    grid.setHorizontalSpacing(15)
     grid.addWidget(label_desktop_id, 1, 1)
     grid.addWidget(self.entry_desktop_id, 1, 2, 1, 2)
     grid.addWidget(btn_next, 2, 2, 1, 1)
